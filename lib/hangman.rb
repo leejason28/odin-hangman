@@ -20,6 +20,7 @@ class Game
     end
     @guesses = 6 #head,body,2arms,2legs
     @user_guessed = []
+    @user_incorrect_guessed = []
   end
 
   def play
@@ -28,14 +29,16 @@ class Game
     while !self.game_over?
       puts @guess_array.join(" ")
       puts "Guess a letter. You have #{@guesses} incorrect guesses remaining."
+      puts "You have incorrectly guessed: #{@user_incorrect_guessed}"
       user_input = gets
-      user_guess = user_input.gsub("\n", "")
+      user_guess = user_input.gsub("\n", "").downcase
       while !self.valid_guess?(user_guess)
         puts @guess_array.join(" ")
         user_input = gets
-        user_guess = user_input.gsub("\n", "")
+        user_guess = user_input.gsub("\n", "").downcase
       end
       @user_guessed.push(user_guess)
+      @user_incorrect_guessed = @user_guessed.filter { |char| !@secret_array.include?(char) }
       if @secret_array.include?(user_guess)
         @guess_array.map!.with_index { |letter, index| @secret_array[index]==user_guess ? user_guess : letter }
       else
@@ -45,17 +48,19 @@ class Game
     if @guesses>0
       puts "Congrats! You win! The word was: #{@secret}"
     else
-      puts "You lose."
+      puts "You lose. The word was #{@secret}"
     end
   end
 
   def valid_guess?(string)
     if string.length != 1
       puts "Invalid guess. Valid guesses are a single alphabet character. Try again." 
+      puts "You have incorrectly guessed: #{@user_incorrect_guessed}"
       return false
     end
     if @user_guessed.include?(string)
       puts "Invalid guess. You cannot guess the same letter again. Try again."
+      puts "You have incorrectly guessed: #{@user_incorrect_guessed}"
       return false
     else
       if string.ord>=97 && string.ord<=122
@@ -64,6 +69,7 @@ class Game
         return true
       else
         puts "Invalid guess. Valid guesses are a single alphabet character. Try again." 
+        puts "You have incorrectly guessed: #{@user_incorrect_guessed}"
         return false
       end
     end

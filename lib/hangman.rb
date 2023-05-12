@@ -19,6 +19,7 @@ class Game
       @guess_array.push("_")
     end
     @guesses = 6 #head,body,2arms,2legs
+    @user_guessed = []
   end
 
   def play
@@ -29,10 +30,41 @@ class Game
       puts "Guess a letter. You have #{@guesses} incorrect guesses remaining."
       user_input = gets
       user_guess = user_input.gsub("\n", "")
+      while !self.valid_guess?(user_guess)
+        puts @guess_array.join(" ")
+        user_input = gets
+        user_guess = user_input.gsub("\n", "")
+      end
+      @user_guessed.push(user_guess)
       if @secret_array.include?(user_guess)
         @guess_array.map!.with_index { |letter, index| @secret_array[index]==user_guess ? user_guess : letter }
       else
         @guesses -= 1
+      end
+    end
+    if @guesses>0
+      puts "Congrats! You win! The word was: #{@secret}"
+    else
+      puts "You lose."
+    end
+  end
+
+  def valid_guess?(string)
+    if string.length != 1
+      puts "Invalid guess. Valid guesses are a single alphabet character. Try again." 
+      return false
+    end
+    if @user_guessed.include?(string)
+      puts "Invalid guess. You cannot guess the same letter again. Try again."
+      return false
+    else
+      if string.ord>=97 && string.ord<=122
+        return true
+      elsif string.ord>=65 && string.ord<=90
+        return true
+      else
+        puts "Invalid guess. Valid guesses are a single alphabet character. Try again." 
+        return false
       end
     end
   end

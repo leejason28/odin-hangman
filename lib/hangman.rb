@@ -32,12 +32,26 @@ class Game
   def play
     puts "Hello, welcome to Hangman. Guess the secret word one letter at a time."
     puts "Correct guesses will give you hints on the secret word. You have a total of 6 incorrect guesses."
+    puts "Would you like to load a game or start a new one? Enter 'load' or anything."
+    user_game = gets
+    if user_game.gsub("\n", "").downcase=='load'
+      puts "These are your saved games: #{Dir.children('saves')}"
+      puts "Enter the name of your save. For 'a.json', enter 'a'."
+      user_save = gets
+      self.load(user_save.gsub("\n", "").downcase)
+    end
     while !self.game_over?
       puts @guess_array.join(" ")
       puts "Guess a letter. You have #{@guesses} incorrect guesses remaining."
       puts "You have incorrectly guessed: #{@user_incorrect_guessed}"
       user_input = gets
       user_guess = user_input.gsub("\n", "").downcase
+      if user_guess=='save'
+        puts "Enter a keyword for your save."
+        user_save = gets
+        self.save(user_save.gsub("\n", "").downcase)
+        break
+      end
       while !self.valid_guess?(user_guess)
         puts @guess_array.join(" ")
         user_input = gets
@@ -51,7 +65,9 @@ class Game
         @guesses -= 1
       end
     end
-    if @guesses>0
+    if user_guess=='save'
+      puts "You have successfully saved your game."
+    elsif @guesses>0
       puts "Congrats! You win! The word was: #{@secret}"
     else
       puts "You lose. The word was #{@secret}"
@@ -108,7 +124,8 @@ class Game
 
   def save(string)
     #write to new file with contents of json dump
-    File.open("#{string}.json", 'w') do |file|
+    Dir.mkdir('saves') unless Dir.exist?('saves')
+    File.open("saves/#{string}.json", 'w') do |file|
       file.puts self.to_json
     end
   end
@@ -117,10 +134,10 @@ class Game
     #read specified file and update instance variables with info from json 
     #delete the file
     data = to_json
-    File.open("#{string}.json", 'r') do |file|
+    File.open("saves/#{string}.json", 'r') do |file|
       data = from_json(file)
     end
-    File.delete("#{string}.json")
+    File.delete("saves/#{string}.json")
     @secret = data['secret']
     @secret_array = data['secret_array']
     @guess_array = data['guess_array']

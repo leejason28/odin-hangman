@@ -32,13 +32,22 @@ class Game
   def play
     puts "Hello, welcome to Hangman. Guess the secret word one letter at a time."
     puts "Correct guesses will give you hints on the secret word. You have a total of 6 incorrect guesses."
-    puts "Would you like to load a game or start a new one? Enter 'load' or anything."
+    puts "\n"
+    puts "If at any point you would like to save the game to come back later, enter the word 'save' instead of a letter."
+    puts "Would you like to load a game or start a new one? Enter 'load' or anything else to start a new game."
     user_game = gets
     if user_game.gsub("\n", "").downcase=='load'
       puts "These are your saved games: #{Dir.children('saves')}"
       puts "Enter the name of your save. For 'a.json', enter 'a'."
       user_save = gets
-      self.load(user_save.gsub("\n", "").downcase)
+      user_save_file = user_save.gsub("\n", "").downcase
+      while !File.exist?("saves/#{user_save_file}.json")
+        puts "Please enter a valid file name. For 'a.json', enter 'a'."
+        puts "These are your saved games: #{Dir.children('saves')}"
+        user_save = gets
+        user_save_file = user_save.gsub("\n", "").downcase
+      end
+      self.load(user_save_file)
     end
     while !self.game_over?
       puts @guess_array.join(" ")
@@ -49,7 +58,13 @@ class Game
       if user_guess=='save'
         puts "Enter a keyword for your save."
         user_save = gets
-        self.save(user_save.gsub("\n", "").downcase)
+        user_save_file = user_save.gsub("\n", "").downcase
+        while File.exist?("saves/#{user_save_file}.json") || user_save_file.include?(" ")
+          puts "Enter a valid name for your save. Valid keywords are unique and don't contain spaces."
+          user_save = gets
+          user_save_file = user_save.gsub("\n", "").downcase
+        end
+        self.save(user_save_file)
         break
       end
       while !self.valid_guess?(user_guess)
@@ -149,13 +164,4 @@ class Game
 end
 
 g = Game.new
-#File.open("#{g.secret}.json", 'w') do |file|
-  #file.puts g.to_json
-#end
-#gd = 'apple'
-#File.open("#{g.secret}.json", 'r') do |file|
-  #gd = g.from_json(file)
-#end
-#p gd
-#File.delete("#{g.secret}.json")
 g.play
